@@ -1,24 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Social Boost</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
 
-  document.getElementById('link').value='';
-}
-function renderPosts(){
-  let list = document.getElementById("postList");
-  db.ref('posts').on('value', snapshot=>{
-    list.innerHTML="";
-    let posts = snapshot.val();
-    if(!posts){ list.innerHTML="<p>No posts yet.</p>"; return; }
-    Object.keys(posts).forEach(k=>{
-      let p = posts[k];
-      let div = document.createElement("div");
-      div.innerHTML=`${p.link} <button onclick="engage('${k}')">Engage +1</button> Points: ${p.points}`;
-      list.appendChild(div);
+<h2>Social Boost Demo</h2>
+
+<input id="link" placeholder="Paste TikTok / Instagram / YouTube link">
+<button onclick="submitPost()">Submit Post</button>
+
+<p>Your Points: <span id="points">0</span></p>
+
+<div id="postList"></div>
+
+<script>
+  // ===== Firebase Config =====
+  const firebaseConfig = {
+    apiKey: "Yahan apni API key dalna",
+    authDomain: "Yahan apna project ID.firebaseapp.com",
+    databaseURL: "https://Yahan apna project ID-default-rtdb.firebaseio.com",
+    projectId: "Yahan apna project ID",
+    storageBucket: "Yahan apna project ID.appspot.com",
+    messagingSenderId: "Yahan apna sender ID",
+    appId: "Yahan apna app ID"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // ===== Points aur Posts Logic =====
+  let points = 0;
+
+  function updatePoints(){
+    document.getElementById("points").innerText = points;
+  }
+
+  function submitPost(){
+    let link = document.getElementById('link').value.trim();
+    if(link.length < 5){ alert('Enter valid link'); return; }
+    let key = db.ref('posts').push().key;
+    db.ref('posts/'+key).set({link: link, points: 0});
+    document.getElementById('link').value='';
+  }
+
+  function renderPosts(){
+    let list = document.getElementById("postList");
+    db.ref('posts').on('value', snapshot=>{
+      list.innerHTML="";
+      let posts = snapshot.val();
+      if(!posts){ list.innerHTML="<p>No posts yet.</p>"; return; }
+      Object.keys(posts).forEach(k=>{
+        let p = posts[k];
+        let div = document.createElement("div");
+        div.innerHTML=`${p.link} <button onclick="engage('${k}')">Engage +1</button> Points: ${p.points}`;
+        list.appendChild(div);
+      });
     });
-  });
-}
-function engage(k){
-  db.ref('posts/'+k).transaction(post=>{ if(post) post.points=(post.points||0)+1; return post; });
-  points++; updatePoints();
-}
-renderPosts(); updatePoints();
+  }
+
+  function engage(k){
+    db.ref('posts/'+k).transaction(post=>{ if(post) post.points=(post.points||0)+1; return post; });
+    points++; updatePoints();
+  }
+
+  renderPosts();
+  updatePoints();
 </script>
-</body
+
+</body>
+</html>
